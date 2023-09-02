@@ -5,25 +5,28 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 st.set_page_config(layout="centered")
-
-st.title("Кредиты: брать или не брать?")
-st.image("1.png", caption="... о вреде капитализма и кредитования ... ", width=700)
+st.title("Анализ откликов на РК по кредитам")
 
 
-df = st.cache_data(pd.read_csv)("datasets/bank-mix.csv")
-#st.write(df.head())
+df = st.cache_data(pd.read_csv)("datasets/final.csv")
+
+categorial = ['GENDER', 'EDUCATION', 'MARITAL_STATUS', 'SOCSTATUS_WORK_FL', 'SOCSTATUS_PENS_FL', 'FAMILY_INCOME',
+              'REG_ADDRESS_PROVINCE', 'FACT_ADDRESS_PROVINCE',
+              'POSTAL_ADDRESS_PROVINCE', 'FL_PRESENCE_FL', 'GEN_INDUSTRY', 'GEN_TITLE', 'JOB_DIR']
+numeric =    ['AGE', 'CHILD_TOTAL', 'DEPENDANTS', 'OWN_AUTO', 'credits', 'closed', 'PERSONAL_INCOME', 'WORK_TIME']
 
 st.sidebar.header("Распределение признака")
-column_distr = st.sidebar.selectbox('Выберите признак', ["age", "child_total","dependants"])
+column_distr = st.sidebar.selectbox('Выберите признак', numeric)
 
 st.sidebar.header("Корреляция признаков")
 st.sidebar.text("Можно выбрать часть признаков")
-cols_corr = st.sidebar.multiselect('Столбцы для матрицы корреляций', df.columns, max_selections=6, default=['age','gender'])
+cols_corr = st.sidebar.multiselect('Столбцы для матрицы корреляций', categorial + numeric, max_selections=6, default=['AGE','PERSONAL_INCOME'])
 
 st.sidebar.header("Зависимость целевой переменной от 2-х других")
-df.notarget = df.columns[df.columns != 'target']
-cols_deptarget = st.sidebar.multiselect('Переменные для построения зависимости', df.notarget, max_selections=2, default=['age','personal_income'])
+cols_deptarget = st.sidebar.multiselect('Переменные для построения зависимости', categorial + numeric, max_selections=2, default=['AGE','PERSONAL_INCOME'])
 
+st.sidebar.header("доля в таргете для бина или категориального признака")
+column_distr_target = st.sidebar.selectbox('Выберите признак', categorial)
 
 new_df = df[column_distr]
 
@@ -53,7 +56,36 @@ else:
     
 st.success("Задание: построены графиков зависимостей целевой переменной и признаков (не менее, чем два графика)")
 st.warning("у нас таргет категориальный, поэтому красивых скаттерплотов не получится по одной переменной. Поэтому рискну сделать по 2-м переменным а таргет подсвечу цветом")
+
+
+if len(cols_deptarget) == 2:
+    fig, ax = plt.subplots()
+    ax = sns.scatterplot(df, x = df[cols_deptarget[0]], y = df[cols_deptarget[1]], c=df['TARGET'])
+    ax.set_title("зависимость ЦП от " + "/".join(cols_deptarget))
+    st.pyplot(fig)
+    
+st.success("Еленой в чате было предложено: Можно просто гистограмму построить. Для каждой категории или бина значений признака долю 1 в таргете ")
 fig, ax = plt.subplots()
-ax = sns.scatterplot(df, x = df[cols_deptarget[0]], y = df[cols_deptarget[1]], c=df['target'])
-ax.set_title("зависимость ЦП от " + column_distr)
+sns.histplot(data=df, x=column_distr_target, hue="TARGET", multiple="dodge", shrink=.8)
+ax.tick_params(axis='x', rotation=90)
+
+ax.set_title("Доля таргета в " + column_distr_target)
+
 st.pyplot(fig)
+
+st.success("Характеристики распределения числовых признаков")
+st.write(df[numeric].describe())
+
+
+st.success("Числовые характеристики категориальных признаков")
+for priznak in categorial:
+    st.write(df[priznak].value_counts())
+
+
+
+st.success("Данные о пропусках")
+st.write(df.isna().sum())
+
+
+st.title("Кредиты: брать или не брать?")
+st.image("1.png", caption="... о вреде капитализма и кредитования ... ", width=700)
