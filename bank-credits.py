@@ -20,7 +20,7 @@ column_distr = st.sidebar.selectbox('Выберите признак', numeric)
 
 st.sidebar.header("Корреляция признаков")
 st.sidebar.text("Можно выбрать часть признаков")
-cols_corr = st.sidebar.multiselect('Столбцы для матрицы корреляций', categorial + numeric, max_selections=6, default=['AGE','PERSONAL_INCOME'])
+cols_corr = st.sidebar.multiselect('Столбцы для матрицы корреляций', numeric, max_selections=6, default=['AGE','PERSONAL_INCOME'])
 
 st.sidebar.header("Зависимость целевой переменной от 2-х других")
 cols_deptarget = st.sidebar.multiselect('Переменные для построения зависимости', categorial + numeric, max_selections=2, default=['AGE','PERSONAL_INCOME'])
